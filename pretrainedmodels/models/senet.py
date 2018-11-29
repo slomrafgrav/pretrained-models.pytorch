@@ -86,7 +86,9 @@ class SEModule(nn.Module):
 
     def __init__(self, channels, reduction):
         super(SEModule, self).__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        # self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        pseudo_adaptive_shape = 56*256//channels
+        self.avg_pool = nn.AvgPool2d(pseudo_adaptive_shape,pseudo_adaptive_shape)
         self.fc1 = nn.Conv2d(channels, channels // reduction, kernel_size=1,
                              padding=0)
         self.relu = nn.ReLU(inplace=True)
@@ -278,8 +280,9 @@ class SENet(nn.Module):
             ]
         # To preserve compatibility with Caffe weights `ceil_mode=True`
         # is used instead of `padding=1`.
-        layer0_modules.append(('pool', nn.MaxPool2d(3, stride=2,
-                                                    ceil_mode=True)))
+        # layer0_modules.append(('pool', nn.MaxPool2d(3, stride=2,
+        #                                             ceil_mode=True)))
+        layer0_modules.append(('pool', nn.MaxPool2d(3, stride=2, ceil_mode=False)))
         self.layer0 = nn.Sequential(OrderedDict(layer0_modules))
         self.layer1 = self._make_layer(
             block,
@@ -440,3 +443,4 @@ def se_resnext101_32x4d(num_classes=1000, pretrained='imagenet'):
         settings = pretrained_settings['se_resnext101_32x4d'][pretrained]
         initialize_pretrained_model(model, num_classes, settings)
     return model
+
